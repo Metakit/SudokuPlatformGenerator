@@ -17,7 +17,6 @@
 #define SwapInt(a, b) {int t = a; a = b; b = t;}
 #define Random(x) (rand()%x)
 using namespace std;
-//int stop = 0;
 
 ofstream fout ("sudoku.txt");
 
