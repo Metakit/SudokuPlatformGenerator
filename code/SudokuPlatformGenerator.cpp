@@ -16,11 +16,19 @@ int stop = 0;
 
 ofstream fout("sudoku.txt");
 
+/*
+ * 以下分别是存放一行待选随机数字的数组randomArray，数独盘面sudoku，
+ * 标记一单元不可填入数字的数组removeArray，选择一行待选随机数字的
+ * 下标fillingSelector。
+ */
 int randomArray[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 int sudoku[9][9] = {};
 int removeArray[9] = {};
 int fillingSelector = 0;
 
+/*
+ * 输入一个一维数组，打印该数组。
+ */
 void print_array(int* thatArray) {
 	for (int i = 0; i < 9; ++i) {
 		if (i == 8) fout << thatArray[i];
@@ -28,6 +36,9 @@ void print_array(int* thatArray) {
 	}
 }
 
+/*
+ * 打印数独盘面。
+ */
 void print_sudoku() {
 	for (int i = 0; i < 9; ++i) {
 		print_array(sudoku[i]);
@@ -35,12 +46,18 @@ void print_sudoku() {
 	}
 }
 
+/*
+ * 输入行数，初始化该行。
+ */
 void delete_row(int y) {
 	for (int i = 0; i < 9; ++i) {
 		sudoku[y][i] = 0;
 	}
 }
 
+/*
+ * 使randomArray变为一个随机的、包含不重复1~9的数组。
+ */
 void generate_random_array() {
 	for (int i = 0; i < 9; ++i) {
 		randomArray[i] = i + 1;
@@ -54,6 +71,10 @@ void generate_random_array() {
 	}
 }
 
+/*
+ * 使randomArray变为一个随机的、包含不重复1~9的数组，但
+ * randomArray[0]固定为1。
+ */
 void generate_random_array_special() {
 	generate_random_array();
 	for (unsigned i = 0; i < 9; ++i) {
@@ -64,18 +85,30 @@ void generate_random_array_special() {
 	}
 }
 
+/*
+ * 输入行、列位置，以行为依据判断不能填入该单元的数字，判断结果
+ * 将改变removeArray。
+ */
 void remove_impossible_row(int y, int x) {
 	for (int i = 0; i < x; ++i) {
 		removeArray[sudoku[y][i] - 1] = 1;
 	}
 }
 
+/*
+ * 输入行、列位置，以列为依据判断不能填入该单元的数字，判断结果
+ * 将改变removeArray。
+ */
 void remove_impossible_column(int y, int x) {
 	for (int i = 0; i < y; ++i) {
 		removeArray[sudoku[i][x] - 1] = 1;
 	}
 }
 
+/*
+ * 输入行、列位置，以宫为依据判断不能填入该单元的数字，判断结果
+ * 将改变removeArray。
+ */
 void remove_impossible_block(int y, int x) {
 	for (int i = y / 3 * 3; i < y / 3 * 3 + 3; ++i) {
 		for (int j = x / 3 * 3; j < x / 3 * 3 + 3; ++j) {
@@ -86,13 +119,26 @@ void remove_impossible_block(int y, int x) {
 	}
 }
 
+/*
+ * 输入行、列位置，判断不能填入该单元的数字，判断结果将改变
+ * removeArray。
+ */
 void remove_impossible_unit(int y, int x) {
 	remove_impossible_row(y, x);
 	remove_impossible_column(y, x);
 	remove_impossible_block(y, x);
 }
 
+/*
+ * 输入行、列位置，尝试向该单元填入数字。填入成功返回true，否则
+ * 返回false。
+ */
 bool filling_unit(int y, int x) {
+	/*
+	 * 每次填入使用一次removeArray，所以需要初始化。排除完毕后根据
+	 * removeArray顺序拿取randomArray中的数字，找到合适的数字，填
+	 * 入成功；找不到，填入失败。
+	 */
 	memset(removeArray, 0, sizeof(removeArray));
 	remove_impossible_unit(y, x);
 	for (int i = 0; i < 9; ++i) {
@@ -107,20 +153,37 @@ bool filling_unit(int y, int x) {
 	return false;
 }
 
+/*
+ * 填充数独第一行，需要randomArray存放合适的随机数组。
+ */
 void filling_first_row() {
 	for (unsigned i = 0; i < 9; ++i) {
 		sudoku[0][i] = randomArray[i];
 	}
 }
 
+/*
+ * 填充数独盘面。
+ */
 void filling_sudoku() {
 	int rowDeathCount = 0;
 	for (int i = 0; i < 9; ++i) {
-		generate_random_array_special();
 		if (i == 0) {
+			/*
+			 * 第一行直接填入行首为1的合法随机数组。
+			 */
+			generate_random_array_special();
 			filling_first_row();
 		}
 		else {
+			/*
+			 * 生成合法随机数组，尝试填入行。填入行即为分别填入行内9
+			 * 个单元，其中一个单元填入失败，填入行失败；否则成功。如
+			 * 果填入行失败，重试。
+			 * 在一个数独盘面内，如果填入行失败超过100次，重新执行该函
+			 * 数。
+			 */
+			generate_random_array();
 			for (int j = 0; j < 9; ++j) {
 				if (!filling_unit(i, j)) {
 					delete_row(i);
@@ -139,6 +202,10 @@ void filling_sudoku() {
 	}
 }
 
+/*
+ * 输入一个数字generateSudokuNum，随机生成generateSudokuNum个
+ * 数独盘面。
+ */
 void generate_random_sudoku_multi(int generateSudokuNum) {
 	for (int i = 0; i < generateSudokuNum; ++i) {
 		filling_sudoku();
@@ -151,6 +218,9 @@ void generate_random_sudoku_multi(int generateSudokuNum) {
 	}
 }
 
+/*
+ * 测试单元剔除的实例。
+ */
 void test_of_remove_impossible() {
 	sudoku[0][0] = 3;
 	sudoku[0][1] = 6;
@@ -169,12 +239,18 @@ void test_of_remove_impossible() {
 	cout << endl;
 }
 
+/*
+ * 测试随机数组randomArray生成的实例。
+ */
 void test_of_generater_random_array() {
 	generate_random_array();
 	print_array(randomArray);
 	cout << endl;
 }
 
+/*
+ * 测试数独终盘生成的实例。
+ */
 void test_of_no_back_fill() {
 	for (int i = 0; i < 9; ++i) {
 		generate_random_array();
@@ -186,6 +262,9 @@ void test_of_no_back_fill() {
 	}
 }
 
+/*
+ * 测试大量数独终盘生成的实例。
+ */
 void test_of_true_sudoku_output() {
 	for (int i = 0; i < 1000; ++i) {
 		cout << i + 1 << ":" << endl;
@@ -196,6 +275,9 @@ void test_of_true_sudoku_output() {
 	}
 }
 
+/*
+ * 输入一个字符串。如果是纯数字串，输出对应的数字；否则输出-1。
+ */
 int trans_argv_into_number(char* str) {
 	int ans = 0;
 	int strSize = strlen(str);
@@ -213,6 +295,9 @@ int trans_argv_into_number(char* str) {
 int main(int argc, char **argv) {
 	srand((int)time(0));
 
+	/*
+	 * 参数处理。默认情况输出1个终盘，使用"-c n"指定生成n个终盘。
+	 */
 	if (argc == 1) {
 		generate_random_sudoku_multi(1);
 	}
