@@ -1,15 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <iomanip>
-#include <stdio.h>
-#include <cstdio>
 #include <cstring>
 #include <string>
 #include <string.h>
-#include <math.h>
 #include <stdlib.h>
 #include <algorithm>
-#include <malloc.h>
 #include <time.h> //srand((int)time(0));
 #define LL long long
 #define eps 10e-8
@@ -17,39 +12,40 @@
 #define SwapInt(a, b) {int t = a; a = b; b = t;}
 #define Random(x) (rand()%x)
 using namespace std;
+int stop = 0;
 
-ofstream fout ("sudoku.txt");
+ofstream fout("sudoku.txt");
 
-int randomArray[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+int randomArray[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 int sudoku[9][9] = {};
 int removeArray[9] = {};
 int fillingSelector = 0;
 
 void print_array(int* thatArray) {
-	for(int i = 0; i < 9; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		if (i == 8) fout << thatArray[i];
 		else        fout << thatArray[i] << " ";
 	}
 }
 
 void print_sudoku() {
-	for(int i = 0; i < 9; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		print_array(sudoku[i]);
 		if (i != 8) fout << endl;
 	}
 }
 
 void delete_row(int y) {
-	for(int i = 0; i < 9; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		sudoku[y][i] = 0;
 	}
 }
 
 void generate_random_array() {
-	for(int i = 0; i < 9; ++i) {
-		randomArray[i] = i+1;
+	for (int i = 0; i < 9; ++i) {
+		randomArray[i] = i + 1;
 	}
-	for(int i = 0; i < 30; ++i) {
+	for (int i = 0; i < 30; ++i) {
 		//SwapInt(randomArray[0], randomArray[Random(9)]) is wrong.
 		int sub = Random(9);
 		int tmp = randomArray[0];
@@ -60,8 +56,8 @@ void generate_random_array() {
 
 void generate_random_array_special() {
 	generate_random_array();
-	for(unsigned i = 0; i < 9; ++i) {
-		if(randomArray[i] == 1) {
+	for (unsigned i = 0; i < 9; ++i) {
+		if (randomArray[i] == 1) {
 			SwapInt(randomArray[i], randomArray[0]);
 			break;
 		}
@@ -69,22 +65,22 @@ void generate_random_array_special() {
 }
 
 void remove_impossible_row(int y, int x) {
-	for(int i = 0; i < x; ++i) {
-		removeArray[ sudoku[y][i]-1 ] = 1;
+	for (int i = 0; i < x; ++i) {
+		removeArray[sudoku[y][i] - 1] = 1;
 	}
 }
 
 void remove_impossible_column(int y, int x) {
-	for(int i = 0; i < y; ++i) {
-		removeArray[ sudoku[i][x]-1 ] = 1;
+	for (int i = 0; i < y; ++i) {
+		removeArray[sudoku[i][x] - 1] = 1;
 	}
 }
 
 void remove_impossible_block(int y, int x) {
-	for(int i = y/3*3; i < y/3*3 + 3; ++i) {
-		for(int j = x/3*3; j < x/3*3 + 3; ++j) {
+	for (int i = y / 3 * 3; i < y / 3 * 3 + 3; ++i) {
+		for (int j = x / 3 * 3; j < x / 3 * 3 + 3; ++j) {
 			if (sudoku[i][j] != 0) {
-				removeArray[ sudoku[i][j]-1 ] = 1;
+				removeArray[sudoku[i][j] - 1] = 1;
 			}
 		}
 	}
@@ -99,9 +95,9 @@ void remove_impossible_unit(int y, int x) {
 bool filling_unit(int y, int x) {
 	memset(removeArray, 0, sizeof(removeArray));
 	remove_impossible_unit(y, x);
-	for(int i = 0; i < 9; ++i) {
-		if(randomArray[i] != 0) {
-			if(removeArray[ randomArray[i]-1 ] == 0) {
+	for (int i = 0; i < 9; ++i) {
+		if (randomArray[i] != 0) {
+			if (removeArray[randomArray[i] - 1] == 0) {
 				sudoku[y][x] = randomArray[i];
 				randomArray[i] = 0;
 				return true;
@@ -112,27 +108,27 @@ bool filling_unit(int y, int x) {
 }
 
 void filling_first_row() {
-	for(unsigned i = 0; i < 9; ++i) {
+	for (unsigned i = 0; i < 9; ++i) {
 		sudoku[0][i] = randomArray[i];
 	}
 }
 
 void filling_sudoku() {
 	int rowDeathCount = 0;
-	for(int i = 0; i < 9; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		generate_random_array_special();
-		if(i == 0) {
+		if (i == 0) {
 			filling_first_row();
 		}
 		else {
-			for(int j = 0; j < 9; ++j) {
-				if( !filling_unit(i, j) ) {
+			for (int j = 0; j < 9; ++j) {
+				if (!filling_unit(i, j)) {
 					delete_row(i);
 					j = -1;
 					generate_random_array();
 					rowDeathCount++;
 				}
-				if(rowDeathCount == 100) {
+				if (rowDeathCount == 100) {
 					memset(sudoku, 0, sizeof(sudoku));
 					rowDeathCount = 0;
 					i = -1;
@@ -140,6 +136,18 @@ void filling_sudoku() {
 				}
 			}
 		}
+	}
+}
+
+void generate_random_sudoku_multi(int generateSudokuNum) {
+	for (int i = 0; i < generateSudokuNum; ++i) {
+		filling_sudoku();
+		print_sudoku();
+		fout << endl;
+		if (i != generateSudokuNum - 1) {
+			fout << endl;
+		}
+		memset(sudoku, 0, sizeof(sudoku));
 	}
 }
 
@@ -168,19 +176,19 @@ void test_of_generater_random_array() {
 }
 
 void test_of_no_back_fill() {
-	for(int i = 0; i < 9; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		generate_random_array();
-		print_array(randomArray);cout <<" - ";
-		for(int j = 0; j < 9; ++j) {
+		print_array(randomArray); cout << " - ";
+		for (int j = 0; j < 9; ++j) {
 			filling_unit(i, j);
 		}
-		print_array(sudoku[i]);cout << endl;
+		print_array(sudoku[i]); cout << endl;
 	}
 }
 
-void test_of_true_sudoku_output() {	
-	for(int i = 0; i < 1000; ++i) {
-		cout << i+1 << ":" << endl;
+void test_of_true_sudoku_output() {
+	for (int i = 0; i < 1000; ++i) {
+		cout << i + 1 << ":" << endl;
 		filling_sudoku();
 		print_sudoku();
 		cout << endl;
@@ -191,8 +199,8 @@ void test_of_true_sudoku_output() {
 int trans_argv_into_number(char* str) {
 	int ans = 0;
 	int strSize = strlen(str);
-	for(int i = 0; i < strSize; ++i) {
-		if('0' <= str[i] && str[i] <= '9') {
+	for (int i = 0; i < strSize; ++i) {
+		if ('0' <= str[i] && str[i] <= '9') {
 			ans = ans * 10 + str[i] - '0';
 		}
 		else {
@@ -204,23 +212,23 @@ int trans_argv_into_number(char* str) {
 
 int main(int argc, char **argv) {
 	srand((int)time(0));
-	
-	int generateSudokuNum = trans_argv_into_number(argv[2]);
-	if(argc != 3 || strcmp(argv[1], "-c") || generateSudokuNum == -1) {
-		fout << "parameter is illegal" << endl; 
+
+	if (argc == 1) {
+		generate_random_sudoku_multi(1);
+	}
+	else if (argc == 3) {
+		int generateSudokuNum = trans_argv_into_number(argv[2]);
+		if (!strcmp(argv[1], "-c") && generateSudokuNum != -1) {
+			generate_random_sudoku_multi(generateSudokuNum);
+		}
+		else {
+			fout << "parameter is illegal" << endl;
+		}
 	}
 	else {
-		for(int i = 0; i < generateSudokuNum; ++i) {
-			filling_sudoku();
-			print_sudoku();
-			fout << endl;
-			if(i != generateSudokuNum - 1) {
-				fout << endl;
-			}
-			memset(sudoku, 0, sizeof(sudoku));
-		}	
+		fout << "parameter is illegal" << endl;
 	}
-	
+
 	//cin >> stop;
-    return 0;  
-} 
+	return 0;
+}
